@@ -8,6 +8,9 @@ library(caret)
 
 testNA <- sapply(testing, function(x) sum(is.na(x)))
 test.covariates < names(testNA[testNA==0])
+
+testNA <- sapply(testing, function(x) sum(is.na(x)))
+test.covariates < names(testNA[testNA==0])
 #numNA <- sapply(training, function(x) sum(is.na(x)))
 #covariates <- names(sumNA[sumNA==0])
 

@@ -22,13 +22,13 @@ inTrain <- createDataPartition(y=fit.train$classe, p=0.7, list=FALSE)
 trainFit <- fit.train[inTrain,]
 testFit <- fit.train[-inTrain,]
 
-rf <- train(classe ~ ., data=trainFit, method="rf", prox=TRUE)
 
 RFvarImp <- createDataPartition(y = fit.train$classe, p = 0.1, list = F)
 VarImpModel <- train(classe ~ ., method = "rf", fit.train[RFVarImp,], ntree = 50, importance = TRUE)
 vi <- varImp(VarImpModel)
 Imp20 <- rownames(vi$importance[1:20,])
 
+rfModel <- train(classe ~ ., method = "rf", trainFit[,c(Imp20, "classe")], ntree = 100, importance = TRUE)
 saveRDS(rfModel, "rfModel.rds")
 
 fit.predict <- predict(rfModel,testFit)
@@ -48,3 +48,10 @@ pml_write_files = function(x){
 pml_write_files(answers)
 
 nswers = predict(rfModel,testing)
+
+vi <- varImp(VarImpModel, scale=FALSE)
+vi <- varImp(VarImpModel, scale=FALSE)
+plot(vi)
+print(vi$importance[1:20])
+Imp20 <- rownames(vi$importance[1:20,])
+print(vi$importance[1:20])

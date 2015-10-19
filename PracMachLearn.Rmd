@@ -28,6 +28,7 @@ An initial exploration of the training data frame, from the file "pml-training.c
 Examining the `testing` data frame also shows only 60 of the variables contain anything other than `NA`. I have used subsetted the `training` data frame to only include these 60 variables in the data frame `fit.train`, also removing the first seven variables in the data frame:  `r names(training[1:7])`.
 
 ```{r}
+library(caret)
 testNA <- sapply(testing, function(x) sum(is.na(x)))
 sum(testNA==0)
 test.covariates <- names(testNA[testNA==0])
@@ -50,11 +51,44 @@ RFvarImp <- createDataPartition(y = fit.train$classe, p = 0.1, list = F)
 VarImpModel <- train(classe ~ ., method = "rf", fit.train[RFvarImp,], ntree = 50, importance = TRUE)
 ```
 
+By using the `varImp` function in the `caret` package, we can identify the most important variables by importance in this particular random forest of a small sample of the data. They are printed below using the r command `print(vi$importance[1:20])`.
+
+```{r}
+vi <- varImp(VarImpModel, scale=FALSE)
+plot(vi)
+print(vi$importance[1:20,])
+Imp20 <- rownames(vi$importance[1:20,])
+```
+
+
+
+```{r eval = FALSE}
+rfModel <- train(classe ~ ., method = "rf",
+                 trainFit[,c(Imp20, "classe")], ntree = 100, importance = TRUE)
+```
+```{r cache = TRUE, echo=FALSE}
+rfModel <- readRDS("RFmodel.rds")
+```
 
 
 ```{r}
-vi <- varImp(VarImpModel)
-plot vi
-Imp20 <- rownames(vi$importance[1:20,])
+fit.predict <- predict(rfModel,testFit)
+confusionMatrix(testFit$classe,fit.predict)
 ```
+
+```{r eval = FALSE}
+
+pml_write_files = function(x){
+    n = length(x)
+    for(i in 1:n){
+      filename = paste0("problem_id_",i,".txt")
+      write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+    }
+  }
+
+pml_write_files(answers)
+
+answers = predict(rfModel,testing)
+```
+
 

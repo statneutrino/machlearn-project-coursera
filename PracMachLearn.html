@@ -71,6 +71,9 @@ img {
 <h3>Background</h3>
 <p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a> (see the section on the Weight Lifting Exercise Dataset).</p>
 <p>The goal of the project is to predict the manner in which they did the exercise. This is the “classe” variable in the training set.</p>
+</div>
+<div id="exploring-and-cleaning-training-data" class="section level3">
+<h3>Exploring and cleaning training data</h3>
 <pre class="r"><code>#Download testing and training data
 #download.file(url=&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;, 
 #destfile=&quot;pml-training.csv&quot;)
@@ -78,22 +81,13 @@ training &lt;- read.csv(&quot;pml-training.csv&quot;)
 #download.file(url=&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;, 
 #destfile=&quot;pml-testing.csv&quot;)
 testing &lt;- read.csv(&quot;pml-testing.csv&quot;)</code></pre>
-</div>
-<div id="exploring-and-cleaning-training-data" class="section level3">
-<h3>Exploring and cleaning training data</h3>
 <p>An initial exploration of the training data frame, from the file “pml-training.csv” (stored in the data frame <code>training</code>) shows that it has 19622 observations of 160 variables.</p>
-<p>Examining the <code>testing</code> data frame also shows only 60 of the variables contain anything other than</p>
+<p>Examining the <code>testing</code> data frame also shows only 60 of the variables contain anything other than <code>NA</code>. I have used subsetted the <code>training</code> data frame to only include these 60 variables in the data frame <code>fit.train</code>, also removing the first seven variables in the data frame, X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window, num_window.</p>
 <pre class="r"><code>testNA &lt;- sapply(testing, function(x) sum(is.na(x)))
 sum(testNA==0)</code></pre>
 <pre><code>## [1] 60</code></pre>
-<pre class="r"><code>test.covariates &lt; names(testNA[testNA==0])</code></pre>
-<pre><code>##  [1] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
-## [12] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
-## [23] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
-## [34] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
-## [45] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
-## [56] FALSE FALSE FALSE FALSE FALSE</code></pre>
-<p>000</p>
+<pre class="r"><code>test.covariates &lt;- names(testNA[testNA==0])
+fit.train &lt;- subset(training, select = c(test.covariates[-c(1:7,60)], &quot;classe&quot;))</code></pre>
 </div>
 
 

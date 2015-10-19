@@ -11,6 +11,8 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 
 The goal of the project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set.
 
+###Exploring data
+
 ```{r cache = TRUE}
 #Download testing and training data
 #download.file(url="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", 
@@ -21,16 +23,38 @@ training <- read.csv("pml-training.csv")
 testing <- read.csv("pml-testing.csv")
 ```
 
-###Exploring and cleaning training data
-
 An initial exploration of the training data frame, from the file "pml-training.csv" (stored in the data frame `training`) shows that it has 19622 observations of 160 variables.
 
-Examining the `testing` data frame also shows only 60 of the variables contain anything other than `NA`. Then names of the variables I have stored in the vector `test.covariates`.
+Examining the `testing` data frame also shows only 60 of the variables contain anything other than `NA`. I have used subsetted the `training` data frame to only include these 60 variables in the data frame `fit.train`, also removing the first seven variables in the data frame:  `r names(training[1:7])`.
 
 ```{r}
 testNA <- sapply(testing, function(x) sum(is.na(x)))
 sum(testNA==0)
-test.covariates < names(testNA[testNA==0])
+test.covariates <- names(testNA[testNA==0])
+fit.train <- subset(training, select = c(test.covariates[-c(1:7,60)], "classe"))
 ```
 
-000
+###Algorithm Selection - Random Forest
+
+I have decided to use a random forest algorithm, as it is usually accurate, but at the expense of interpretability. In this task, however, there is no need for interpretability.
+
+###Feature selection
+
+Before creating my final machine learning algorithm, it is important to select only pertinent features. The first random forest algorithms that created used all 53 observations of the training data. The processing time to create the model using the `caret` package too far too long to be practical.
+
+In order to solve this issue, I created from the `fit.train` data frame a data partition with just 10% of the observations. Using this smaller subset of the data, I created a random forest with just 50 trees using the `caret` package.
+
+```{r cache = TRUE}
+library(caret); set.seed(1111)
+RFvarImp <- createDataPartition(y = fit.train$classe, p = 0.1, list = F)
+VarImpModel <- train(classe ~ ., method = "rf", fit.train[RFvarImp,], ntree = 50, importance = TRUE)
+```
+
+
+
+```{r}
+vi <- varImp(VarImpModel)
+plot vi
+Imp20 <- rownames(vi$importance[1:20,])
+```
+

@@ -16,7 +16,7 @@ test.covariates < names(testNA[testNA==0])
 
 fit.train <- subset(training, select = c(test.covariates[-c(1:7,-60)], "classe"))
 
-library(caret); library(kernlab); set.seed(1111)
+library(caret); set.seed(1111)
 
 inTrain <- createDataPartition(y=fit.train$classe, p=0.7, list=FALSE)
 trainFit <- fit.train[inTrain,]

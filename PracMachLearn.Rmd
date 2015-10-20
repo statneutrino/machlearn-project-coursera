@@ -51,7 +51,7 @@ RFvarImp <- createDataPartition(y = fit.train$classe, p = 0.1, list = F)
 VarImpModel <- train(classe ~ ., method = "rf", fit.train[RFvarImp,], ntree = 50, importance = TRUE)
 ```
 
-By using the `varImp` function in the `caret` package, we can identify the most important variables by importance in this particular random forest of a small sample of the data. They are printed below using the r command `print(vi$importance[1:20])`.
+By using the `varImp` function in the `caret` package, we can identify the most important variables by importance in this particular random forest of a small sample of the data. The most important 20 are printed below using the r command in descending oreder of importance `print(vi$importance[1:20])`.
 
 ```{r}
 vi <- varImp(VarImpModel, scale=FALSE)
@@ -60,12 +60,25 @@ print(vi$importance[1:20,])
 Imp20 <- rownames(vi$importance[1:20,])
 ```
 
+###Cross Validation
+
+For cross validation and to estimate the out-of-sample error, I have used the `createDataPartition` function to create balanced splits of the data. Since the y argument to this function is a factor, the random sampling occurs within each class and should preserve the overall class distribution of the data. I have used a 70/30% training/testing split on the ```.fit.train``` data.
+
+```{r eval = FALSE}
+inTrain <- createDataPartition(y=fit.train$classe, p=0.7, list=FALSE) 
+trainFit <- fit.train[inTrain,] 
+testFit <- fit.train[-inTrain,] 
+```
+
+###Creating the Random Forest Model
+
 
 
 ```{r eval = FALSE}
 rfModel <- train(classe ~ ., method = "rf",
                  trainFit[,c(Imp20, "classe")], ntree = 100, importance = TRUE)
 ```
+
 ```{r cache = TRUE, echo=FALSE}
 rfModel <- readRDS("RFmodel.rds")
 ```

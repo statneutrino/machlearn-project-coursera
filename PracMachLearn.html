@@ -69,7 +69,7 @@ img {
 
 <div id="background" class="section level3">
 <h3>Background</h3>
-<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a> (see the section on the Weight Lifting Exercise Dataset).</p>
+<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, my goal is to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a> (see the section on the Weight Lifting Exercise Dataset).</p>
 <p>The goal of the project is to predict the manner in which they did the exercise. This is the “classe” variable in the training set.</p>
 </div>
 <div id="exploring-data" class="section level3">
@@ -94,7 +94,7 @@ fit.train &lt;- subset(training, select = c(test.covariates[-c(1:7,60)], &quot;c
 </div>
 <div id="algorithm-selection---random-forest" class="section level3">
 <h3>Algorithm Selection - Random Forest</h3>
-<p>I have decided to use a random forest algorithm, as it is usually accurate, but at the expense of interpretability. In this task, however, there is no need for interpretability.</p>
+<p>I have decided to use a random forest algorithm, as it is usually accurate when creating a prediction model, but at the expense of interpretability. In this task, however, there is no need for interpretability.</p>
 </div>
 <div id="feature-selection" class="section level3">
 <h3>Feature selection</h3>
@@ -108,7 +108,7 @@ VarImpModel &lt;- train(classe ~ ., method = &quot;rf&quot;, fit.train[RFvarImp,
 <pre><code>## Loading required package: randomForest
 ## randomForest 4.6-12
 ## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<p>By using the <code>varImp</code> function in the <code>caret</code> package, we can identify the most important variables by importance in this particular random forest of a small sample of the data. They are printed below using the r command <code>print(vi$importance[1:20])</code>.</p>
+<p>By using the <code>varImp</code> function in the <code>caret</code> package, we can identify the most important variables by importance in this particular random forest of a small sample of the data. The most important 20 are printed below in descending order of importance using the r command <code>print(vi$importance[1:20])</code>.</p>
 <pre class="r"><code>vi &lt;- varImp(VarImpModel, scale=FALSE)</code></pre>
 <pre><code>## Loading required package: randomForest
 ## randomForest 4.6-12
@@ -138,8 +138,38 @@ VarImpModel &lt;- train(classe ~ ., method = &quot;rf&quot;, fit.train[RFvarImp,
 ## gyros_arm_y       3.883626  4.727379  0.6391323  2.0737014  0.44334799
 ## gyros_arm_z       1.492936  2.365962  1.6592458  0.4341092  1.55034208</code></pre>
 <pre class="r"><code>Imp20 &lt;- rownames(vi$importance[1:20,])</code></pre>
-<pre class="r"><code>rfModel &lt;- train(classe ~ ., method = &quot;rf&quot;,
+</div>
+<div id="cross-validation" class="section level3">
+<h3>Cross Validation</h3>
+<p>For cross validation and to estimate the out-of-sample error, I have used the <code>createDataPartition</code> function to create balanced splits of the data. Since the y argument to this function is a factor, the random sampling occurs within each class and should preserve the overall class distribution of the data. I have used a 70/30% training/testing split on the <code>fit.train</code> data.</p>
+<pre class="r"><code>library(caret); set.seed(1111)
+inTrain &lt;- createDataPartition(y=fit.train$classe, p=0.7, list=FALSE) 
+trainFit &lt;- fit.train[inTrain,] 
+testFit &lt;- fit.train[-inTrain,] </code></pre>
+</div>
+<div id="creating-the-random-forest-model" class="section level3">
+<h3>Creating the Random Forest Model</h3>
+<p>I used a random forest algorithm (<code>rfModel</code>) to create the prediction model. Due to time contraints, and the lengthy processing time with a large number of obervations in the data, I have decided to use only 100 trees.</p>
+<pre class="r"><code>library(caret); set.seed(1111)
+rfModel &lt;- train(classe ~ ., method = &quot;rf&quot;,
                  trainFit[,c(Imp20, &quot;classe&quot;)], ntree = 100, importance = TRUE)</code></pre>
+</div>
+<div id="estimating-out-of-sample-error" class="section level3">
+<h3>Estimating out-of-sample error</h3>
+<p>As is often the case, the random forest has a prefect accuracy when examining the partition used for training the algorithm, <code>trainFit</code>. This is the <em>in bag</em> or <em>in sample</em> accuracy.</p>
+<pre class="r"><code>confusionMatrix(trainFit$classe,predict(rfModel,trainFit))$table</code></pre>
+<pre><code>##           Reference
+## Prediction    A    B    C    D    E
+##          A 3906    0    0    0    0
+##          B    0 2658    0    0    0
+##          C    0    0 2396    0    0
+##          D    0    0    0 2252    0
+##          E    0    0    0    0 2525</code></pre>
+<p>However the algorithm uses bootstrapping to assign a measure of accuracy. The random forest built-in estimate of accuracy from the <code>caret</code> package is estimated to be <code>0.9600245</code>.</p>
+<pre class="r"><code>rfModel$results[2,]</code></pre>
+<pre><code>##   mtry  Accuracy    Kappa  AccuracySD     KappaSD
+## 2   11 0.9600245 0.949436 0.002654708 0.003357672</code></pre>
+<p>We can test this estimation of accuracy by using the model <code>rfModel</code> to predict from the 30% partition created using the <code>createDataPartition</code> function as part of the <code>caret</code> package, stored in the <code>testFit</code> data frame. This gives us an accuracy of <code>0.9716228</code>. marginally better than the OOB error predicted by the <code>caret</code> package in built function.</p>
 <pre class="r"><code>fit.predict &lt;- predict(rfModel,testFit)
 confusionMatrix(testFit$classe,fit.predict)</code></pre>
 <pre><code>## Confusion Matrix and Statistics
@@ -147,43 +177,32 @@ confusionMatrix(testFit$classe,fit.predict)</code></pre>
 ##           Reference
 ## Prediction    A    B    C    D    E
 ##          A 1640   16    6   11    1
-##          B   21 1098   17    2    1
-##          C    4   31  978   12    1
+##          B   21 1096   19    2    1
+##          C    4   31  979   11    1
 ##          D    3    1   21  936    3
 ##          E    5    0    5    5 1067
 ## 
 ## Overall Statistics
 ##                                           
-##                Accuracy : 0.9718          
-##                  95% CI : (0.9672, 0.9759)
+##                Accuracy : 0.9716          
+##                  95% CI : (0.9671, 0.9757)
 ##     No Information Rate : 0.2843          
 ##     P-Value [Acc &gt; NIR] : &lt; 2e-16         
 ##                                           
-##                   Kappa : 0.9643          
-##  Mcnemar's Test P-Value : 0.03602         
+##                   Kappa : 0.9641          
+##  Mcnemar's Test P-Value : 0.04263         
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9803   0.9581   0.9523   0.9689   0.9944
-## Specificity            0.9919   0.9913   0.9901   0.9943   0.9969
-## Pos Pred Value         0.9797   0.9640   0.9532   0.9710   0.9861
-## Neg Pred Value         0.9922   0.9899   0.9899   0.9939   0.9988
-## Prevalence             0.2843   0.1947   0.1745   0.1641   0.1823
-## Detection Rate         0.2787   0.1866   0.1662   0.1590   0.1813
+## Sensitivity            0.9803   0.9580   0.9505   0.9699   0.9944
+## Specificity            0.9919   0.9909   0.9903   0.9943   0.9969
+## Pos Pred Value         0.9797   0.9622   0.9542   0.9710   0.9861
+## Neg Pred Value         0.9922   0.9899   0.9895   0.9941   0.9988
+## Prevalence             0.2843   0.1944   0.1750   0.1640   0.1823
+## Detection Rate         0.2787   0.1862   0.1664   0.1590   0.1813
 ## Detection Prevalence   0.2845   0.1935   0.1743   0.1638   0.1839
-## Balanced Accuracy      0.9861   0.9747   0.9712   0.9816   0.9956</code></pre>
-<pre class="r"><code>pml_write_files = function(x){
-    n = length(x)
-    for(i in 1:n){
-      filename = paste0(&quot;problem_id_&quot;,i,&quot;.txt&quot;)
-      write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
-    }
-  }
-
-pml_write_files(answers)
-
-answers = predict(rfModel,testing)</code></pre>
+## Balanced Accuracy      0.9861   0.9745   0.9704   0.9821   0.9956</code></pre>
 </div>
 
 

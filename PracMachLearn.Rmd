@@ -72,7 +72,7 @@ testFit <- fit.train[-inTrain,]
 ```
 ###Creating the Random Forest Model
 
-I used a random forest algorithm to create the prediction model. Due to time contraints, and the lengthy processing time with a large number of obervations in the data, I have decided to use only 100 trees.
+I used a random forest algorithm (`rfModel`) to create the prediction model. Due to time contraints, and the lengthy processing time with a large number of obervations in the data, I have decided to use only 100 trees.
 
 ```{r eval = FALSE}
 library(caret); set.seed(1111)
@@ -85,24 +85,23 @@ rfModel <- readRDS("RFmodel.rds")
 
 ###Estimating out-of-sample error
 
+As is often the case, the random forest has a prefect accuracy when examining the partition used for training the algorithm, `trainFit`. This is the *in bag* or *in sample* accuracy.
+
+```{r}
+confusionMatrix(trainFit$classe,predict(rfModel,trainFit))$table
+```
+
+However the algorithm uses bootstrapping to assign a measure of accuracy. The random forest built-in estimate of accuracy from the `caret` package is estimated to be ```r rfModel$results[2,2]```.
+
+```{r}
+rfModel$results[2,]
+```
+
+We can test this estimation of accuracy by using the model `rfModel` to predict from the 30% partition created using the `createDataPartition` function as part of the `caret` package, stored in the `testFit` data frame. This gives us an accuracy of ```r confusionMatrix(testFit$classe,fit.predict)$overall[1]```. marginally better than the OOB error predicted by the `caret` package in built function.
+
 ```{r}
 fit.predict <- predict(rfModel,testFit)
 confusionMatrix(testFit$classe,fit.predict)
-```
-
-```{r eval = FALSE}
-
-pml_write_files = function(x){
-    n = length(x)
-    for(i in 1:n){
-      filename = paste0("problem_id_",i,".txt")
-      write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
-    }
-  }
-
-pml_write_files(answers)
-
-answers = predict(rfModel,testing)
 ```
 
 

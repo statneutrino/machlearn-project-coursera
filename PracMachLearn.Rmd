@@ -13,13 +13,17 @@ The goal of the project is to predict the manner in which they did the exercise.
 
 ###Exploring data
 
-```{r cache = TRUE}
+```{r eval = FALSE}
 #Download testing and training data
-#download.file(url="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", 
-#destfile="pml-training.csv")
+download.file(url="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", 
+              destfile="pml-training.csv")
+download.file(url="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", 
+              destfile="pml-testing.csv")
+```
+
+
+```{r cache = TRUE}
 training <- read.csv("pml-training.csv")
-#download.file(url="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", 
-#destfile="pml-testing.csv")
 testing <- read.csv("pml-testing.csv")
 ```
 
@@ -55,7 +59,7 @@ By using the `varImp` function in the `caret` package, we can identify the most 
 
 ```{r}
 vi <- varImp(VarImpModel, scale=FALSE)
-plot(vi)
+plot(vi, top = 20)
 print(vi$importance[1:20,])
 Imp20 <- rownames(vi$importance[1:20,])
 ```
@@ -70,6 +74,7 @@ inTrain <- createDataPartition(y=fit.train$classe, p=0.7, list=FALSE)
 trainFit <- fit.train[inTrain,] 
 testFit <- fit.train[-inTrain,] 
 ```
+
 ###Creating the Random Forest Model
 
 I used a random forest algorithm (`rfModel`) to create the prediction model. Due to time contraints, and the lengthy processing time with a large number of obervations in the data, I have decided to use only 100 trees.

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -144,7 +145,7 @@ testFit &lt;- fit.train[-inTrain,] </code></pre>
 </div>
 <div id="creating-the-random-forest-model" class="section level3">
 <h3>Creating the Random Forest Model</h3>
-<p>I used a random forest algorithm (<code>rfModel</code>) to create the prediction model. Due to time contraints, and the lengthy processing time with a large number of obervations in the data, I have decided to use only 100 trees.</p>
+<p>I used a random forest algorithm to create the prediction model (<code>rfModel</code>). Due to time contraints, and the lengthy processing time with a large number of obervations in the data, I have decided to use only 100 trees.</p>
 <pre class="r"><code>library(caret); set.seed(1111)
 rfModel &lt;- train(classe ~ ., method = &quot;rf&quot;,
                  trainFit[,c(Imp20, &quot;classe&quot;)], ntree = 100, importance = TRUE)</code></pre>
@@ -172,32 +173,33 @@ confusionMatrix(testFit$classe,fit.predict)</code></pre>
 ##           Reference
 ## Prediction    A    B    C    D    E
 ##          A 1640   16    6   11    1
-##          B   21 1098   17    2    1
-##          C    4   31  979   11    1
+##          B   21 1097   18    2    1
+##          C    4   31  978   12    1
 ##          D    3    1   21  936    3
 ##          E    5    0    5    5 1067
 ## 
 ## Overall Statistics
-##                                          
-##                Accuracy : 0.972          
-##                  95% CI : (0.9674, 0.976)
-##     No Information Rate : 0.2843         
-##     P-Value [Acc &gt; NIR] : &lt; 2e-16        
-##                                          
-##                   Kappa : 0.9645         
-##  Mcnemar's Test P-Value : 0.02904        
+##                                           
+##                Accuracy : 0.9716          
+##                  95% CI : (0.9671, 0.9757)
+##     No Information Rate : 0.2843          
+##     P-Value [Acc &gt; NIR] : &lt;2e-16          
+##                                           
+##                   Kappa : 0.9641          
+##  Mcnemar's Test P-Value : 0.044           
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9803   0.9581   0.9523   0.9699   0.9944
-## Specificity            0.9919   0.9913   0.9903   0.9943   0.9969
-## Pos Pred Value         0.9797   0.9640   0.9542   0.9710   0.9861
-## Neg Pred Value         0.9922   0.9899   0.9899   0.9941   0.9988
-## Prevalence             0.2843   0.1947   0.1747   0.1640   0.1823
-## Detection Rate         0.2787   0.1866   0.1664   0.1590   0.1813
+## Sensitivity            0.9803   0.9581   0.9514   0.9689   0.9944
+## Specificity            0.9919   0.9911   0.9901   0.9943   0.9969
+## Pos Pred Value         0.9797   0.9631   0.9532   0.9710   0.9861
+## Neg Pred Value         0.9922   0.9899   0.9897   0.9939   0.9988
+## Prevalence             0.2843   0.1946   0.1747   0.1641   0.1823
+## Detection Rate         0.2787   0.1864   0.1662   0.1590   0.1813
 ## Detection Prevalence   0.2845   0.1935   0.1743   0.1638   0.1839
-## Balanced Accuracy      0.9861   0.9747   0.9713   0.9821   0.9956</code></pre>
+## Balanced Accuracy      0.9861   0.9746   0.9707   0.9816   0.9956</code></pre>
+<p>The out of sample error is estimated to be <code>2.837723</code>%</p>
 </div>
 
 
